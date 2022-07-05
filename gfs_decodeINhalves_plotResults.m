@@ -1,0 +1,33 @@
+clear all, close all
+
+load('F:\Luba\scripts\ndt_prep\results_pulvinar_ambiguous_half1_1\Binned_data_pulvinar_ambiguous_half1_1_250ms_bins_50ms_results.mat')
+
+bin_centers = ...
+    DECODING_RESULTS.DS_PARAMETERS.binned_site_info.binning_parameters.the_bin_start_times - ...
+    DECODING_RESULTS.DS_PARAMETERS.binned_site_info.binning_parameters.the_bin_widths/2;
+
+figure
+plot(bin_centers, ...
+    DECODING_RESULTS.NORMALIZED_RANK_RESULTS.mean_decoding_results*100, ...
+    'Color', [1 0 0])
+hold on
+
+load('F:\Luba\scripts\ndt_prep\results_pulvinar_ambiguous_half1_2\Binned_data_pulvinar_ambiguous_half1_2_250ms_bins_50ms_results.mat')
+
+plot(bin_centers, ...
+    DECODING_RESULTS.NORMALIZED_RANK_RESULTS.mean_decoding_results*100, ...
+    'Color', [0.5 0 0])
+
+load('F:\Luba\scripts\ndt_prep\results_pulvinar_ambiguous_half2_1\Binned_data_pulvinar_ambiguous_half2_1_250ms_bins_50ms_results.mat')
+
+plot(bin_centers, ...
+    DECODING_RESULTS.NORMALIZED_RANK_RESULTS.mean_decoding_results*100, ...
+    'Color', [0 0 1])
+
+load('F:\Luba\scripts\ndt_prep\results_pulvinar_ambiguous_half2_2\Binned_data_pulvinar_ambiguous_half2_2_250ms_bins_50ms_results.mat')
+
+plot(bin_centers, ...
+    DECODING_RESULTS.NORMALIZED_RANK_RESULTS.mean_decoding_results*100, ...
+    'Color', [0 0 0.5])
+
+
