@@ -1,13 +1,13 @@
 clear all, close all
 
-% This code takes data from allLFPinclude folder, check them for the
+% This code takes data from allLFPinclude folder, checks them for the
 % number of trials, unit quality, area, etc. and saves in the format 
 % eatable by the Neuronal Decoding Toolbox. Saved for keeping records,
 % isn't used currently.
 % The actual code that does the same thing now but in a more explicit and 
 % clear manner - build_raster_databases_12_14rep_new.m
 
-currDir = 'F:\Luba\scripts\ndt_prep\';
+currDir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\';
 cd(currDir)
 
 % set recording area names (pulvinar, LGN, V4)
@@ -33,7 +33,7 @@ fldList = {'LGN_both', 'pulvinar_both', 'V4_both'};
 %     'V4_ambiguous_re', 'V4_both_re', 'V4_physical_re'};
 
 % find all data files
-flList = dir('F:\Luba\data\allLFPinclude\*.mat');
+flList = dir('C:\Users\lvasileva\Documents\Luba\data\allLFPinclude\*.mat');
 
 % loop through data files
 for flNum = 1:length(flList)
