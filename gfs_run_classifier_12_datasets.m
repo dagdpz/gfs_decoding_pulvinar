@@ -11,9 +11,12 @@ for flNum = 1:length(binnedFiles)%31%:length(binnedFiles) % [2:3:length(binnedFi
     save_file_name = ['Results' binnedFiles(flNum).name(12:end)];
     
     if exist(save_file_name, 'file') == 2
+        disp('    Decoding results for this file already exist')
+        disp('    ')
         continue
     end
     
+    disp('    Decoding is going')
     load(binned_format_file_name)
     
     % will decode the condition
