@@ -1,7 +1,19 @@
-function run_basic_decoding_shuff_pulvinar(shuff_num, params)
+function gfs_run_basic_decoding_shuff_pulvinar(shuff_num, params)
  
-% the following parameters are hard coded but could be input arguments to this function
-num_cv_splits = 14;     % use 14 cross-validation splits 
+% % the following parameters are hard coded but could be input arguments to this function
+% if params.cv_splits_num == 1000
+%     % figure out number of repetitions of each stimulus
+%     for k = 1:65
+%         inds_of_sites_with_at_least_k_repeats = find_sites_with_k_label_repetitions(binned_labels.disap_nodisap, k);
+%         num_sites_with_k_repeats(k) = length(inds_of_sites_with_at_least_k_repeats);
+%     end
+%     
+%     a = diff(num_sites_with_k_repeats);
+%     num_cv_splits = find(a ~= 0, 1, 'first'); % equals to minimal number of stimulus repetitions
+%     disp(['Number of maximum cv splits is ' num2str(num_cv_splits)])
+% else
+    num_cv_splits = 14;     % use 14 cross-validation splits
+% end
 binned_data_file_name = params.binned_data_file_name; % use the data that was previously binned 
 
 % create the basic objects needed for decoding
