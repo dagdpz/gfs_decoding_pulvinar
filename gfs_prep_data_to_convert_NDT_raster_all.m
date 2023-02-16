@@ -1,0 +1,403 @@
+function gfs_prep_data_to_convert_NDT_raster_all(dataset)
+
+% This script prepares data from three projects (GFS NIH, GFS no-report 
+% NIH, GFS Tuebingen) to be converted into NDT-eatable format and saves 
+% them into separate folders for respective data sets
+%
+% Example usage:
+% gfs_prep_data_to_convert_NDT_raster_all('GFS_NIH')
+% gfs_prep_data_to_convert_NDT_raster_all('GFS_noreport')
+% gfs_prep_data_to_convert_NDT_raster_all('GFS_Tuebingen')
+
+currDir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\';
+cd(currDir)
+
+if strcmp(dataset, 'GFS_NIH')
+    
+    % folder to take data from
+    dataDir = 'C:\Users\lvasileva\Documents\Luba\data\allLFPinclude\';
+    % folder to save ready data in
+    output_dir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\GFS_NIH\blp_data\';
+    
+    % make output data folders
+    band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
+    
+    for bandNum = 1:length(band_list)
+        
+        blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
+        
+    end
+    
+    dataTypesToLoad = {'SPKSEL', 'LFPSEL'};
+    
+    shift_time = 450; % time point to which the code aligns the reaction time in each trial
+    
+    % list of the needed fields
+    fieldList = ...
+        {'TargBotheyes', 'CatchTargRemov', 'nocatch_disap', 'nocatch_nodisap', ...
+        'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
+        'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data'};
+    
+    fieldList_short = ...
+        {'TargBotheyes', 'CatchTargRemov', 'nocatch_disap', 'nocatch_nodisap'};
+    
+    sessionName.start = 17;
+    sessionName.end = 4;
+    
+    % create variables for electrode info
+    spk_elec = []; % for spikes
+    blp_elec = []; % for blp
+    
+    unitqual = [];
+    area = [];
+    eyemodi = [];
+    sessionInfo = {};
+    
+    getSessionInfo = @getSesInfo_sorted_lats_J_lnv;
+    
+elseif strcmp(dataset, 'GFS_noreport')
+    
+    dataDir = 'C:\Users\lvasileva\Documents\Luba\data\NIH_noReport\SPKLFP_fixgfs\10Binsize\';
+    output_dir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\GFS_noreport\blp_data\';
+    
+    band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
+
+    for bandNum = 1:length(band_list)
+    
+        blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
+    
+    end
+    
+    dataTypesToLoad = {'SPKSEL', 'LFPSEL'};
+    
+    % shift_time = 450; % time point to which the code aligns the reaction time in each trial
+    
+    % % list of the needed fields
+    % fieldList = ...
+    %     {'TargBotheyes', 'CatchTargRemov', 'nocatch_disap', 'nocatch_nodisap', ...
+    %     'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
+    %     'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data'};
+    
+    fieldList = ...
+        {'TargOnly', 'TargRemov', 'disap', 'nodisap'};
+    
+    fieldList_short = ...
+        {'TargOnly', 'TargRemov', 'disap', 'nodisap'};
+    
+    sessionName.start = 24;
+    sessionName.end = 4;
+    
+    % create variables for electrode info
+    spk_elec = []; % for spikes
+    blp_elec = []; % for blp
+    
+    unitqual = [];
+    area = [];
+    eyemodi = [];
+    sessionInfo = {};
+    
+    getSessionInfo = @(x) getSesInfo_fixgfs_04_lnv(x, 1);
+    
+elseif strcmp(dataset, 'GFS_Tuebingen')
+    
+    dataDir = 'C:\Users\lvasileva\Documents\Luba\data\collaboration_Tuebfiles\230606_MUAGFS\';
+    output_dir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\GFS_Tuebingen\blp_data\';
+    
+    % data for area and eye configuration
+    behDir = 'C:\Users\lvasileva\Documents\Luba\data\Luba\Mathis2\20200330_BehData\';
+    % data for reation time
+    RTDir = 'C:\Users\lvasileva\Documents\Luba\data\collaboration_Tuebfiles\230606_LFP_KorrGFS\';
+    
+    % band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
+    %
+    % for bandNum = 1:length(band_list)
+    %
+    %     blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
+    %
+    % end
+    
+    dataTypesToLoad = {'MUA'};
+    
+    fieldList = ...
+    {'physdis', 'nodisappdat', 'subjdis', 'subjNodis'}; % physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
+    
+    sessionName.start = 5;
+    sessionName.end = 12;
+    
+    % create variables for electrode info
+    mua_elec = []; % for mua
+    
+    unitqual = [];
+    area = [];
+    eyemodi = [];
+    sessionInfo = {};
+    
+    getSessionInfo = @getSessionInfo_Tueb_outside_lnv;
+    
+else
+    error('incorrect dataset')
+end
+
+% find all data files
+flList = dir([dataDir '*.mat']);
+flList = {flList.name};
+
+% get session names from the names of data files
+if strcmp(dataset, 'GFS_Tuebingen')
+    sessionNames = cellfun(@(x) x(sessionName.start:sessionName.end), flList, 'Uniformoutput', false);
+else
+    sessionNames = cellfun(@(x) x(sessionName.start:end-sessionName.end), flList, 'Uniformoutput', false);
+end
+
+% loop through sessions
+for ii = 1:length(sessionNames)
+    
+    currSession = sessionNames{ii};
+    
+    SInf = getSessionInfo(currSession);
+    
+    % rename field "electrodes" --> "spk_elec"
+    if strcmp(dataset, 'GFS_Tuebingen')
+        SInf.spk_elec = SInf.electrodes;
+        SInf = rmfield(SInf, 'electrodes');
+    end
+    
+    if strcmp(currSession, '200207_barney_gfs1-04') || ...% unequal number of elements
+            strcmp(currSession, '060307_barney_gfs3-04') || ...
+            ...%             strcmp(currSession, '071106_elvis_gfs2-04') || ...
+            strcmp(currSession, '110207_barney_gfs1-04') || ...
+            strcmp(currSession, '110207_barney_gfs2-04') || ...
+            strcmp(currSession, '120207_barney_gfs1-04') || ...
+            strcmp(currSession, '120207_barney_gfs2-04') || ...
+            strcmp(currSession, '120207_barney_gfs3-04')
+        
+        disp(currSession)
+        
+    else
+        
+        dt = load([dataDir flList{ii}], dataTypesToLoad{:});
+        
+        % make all_data variable
+        for dTypNum = 1:length(dataTypesToLoad)
+            
+            if strcmp(dataset, 'GFS_NIH')
+            
+                dt.(dataTypesToLoad{dTypNum}).all_data = dt.(dataTypesToLoad{dTypNum}).all;
+                dt.(dataTypesToLoad{dTypNum}) = rmfield(dt.(dataTypesToLoad{dTypNum}), 'all');
+                
+            elseif strcmp(dataset, 'GFS_noreport')
+                dt.(dataTypesToLoad{dTypNum}).all_data = ...
+                    cat(3, dt.(dataTypesToLoad{dTypNum}).TargOnly, dt.(dataTypesToLoad{dTypNum}).TargRemov, ...
+                    dt.(dataTypesToLoad{dTypNum}).disap, dt.(dataTypesToLoad{dTypNum}).nodisap);
+            elseif strcmp(dataset, 'GFS_Tuebingen')
+                dt.(dataTypesToLoad{dTypNum}).all_data = ...
+                    cat(3, dt.(dataTypesToLoad{dTypNum}).physdis, dt.(dataTypesToLoad{dTypNum}).nodisappdat, ...
+                    dt.(dataTypesToLoad{dTypNum}).subjdis, dt.(dataTypesToLoad{dTypNum}).subjNodis);
+            end
+        end
+
+        % update electrode info
+        if strcmp(dataset, 'GFS_NIH')
+            spk_elec = [spk_elec SInf.spk_elec];
+            blp_elec = [blp_elec SInf.lfp_elec];
+            
+            unitqual = [unitqual SInf.unitqual];
+            area = [area SInf.area];
+            sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
+            eyemodi = [eyemodi repelem(dt.SPKSEL.AddInfo.eyemodi, length(SInf.spk_elec))];
+        elseif strcmp(dataset, 'GFS_noreport')
+            spk_elec = [spk_elec SInf.spk_elec];
+            
+            unitqual = [unitqual SInf.spikeQual];
+            area = [area SInf.area];
+            sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
+        elseif strcmp(dataset, 'GFS_Tuebingen')
+            mua_elec = [mua_elec SInf.spk_elec];
+            
+            area = [area SInf.area];
+            sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
+        end
+        
+        % check that the number of trials and elecreodes match
+        if length(SInf.spk_elec) ~= size(dt.(dataTypesToLoad{1}).(fieldList{1}), 2)
+            disp(currSession)
+            error('Unequal number of channels!!')
+        end
+        
+        % filter LFPSEL and convert SPK, LFP, MUA to single
+        for dTypNum = 1:length(dataTypesToLoad)
+            
+            for fieldNum = 1:length(fieldList)
+                    
+                if strcmp(dataTypesToLoad{dTypNum}, 'LFPSEL')
+                    dt.LFPSEL.(fieldList{fieldNum}) = gfs_convBLP_whole_preprocdat(dt.LFPSEL.(fieldList{fieldNum}));
+                    dt.LFPSEL.(fieldList{fieldNum}) = single(dt.LFPSEL.(fieldList{fieldNum}));
+                end
+                dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = single(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
+                
+            end
+
+        end
+        
+        % create fake RTs from corresponding disap trials
+        if strcmp(dataset, 'GFS_NIH')
+            TargBotheyes_fake = randsample(dt.LFPSEL.RPL.CatchTargRemov, size(dt.LFPSEL.TargBotheyes, 3), true); % physical condition
+            nocatch_nodisap_fake = randsample(dt.LFPSEL.RPL.nc_disap, size(dt.LFPSEL.nocatch_nodisap, 3), true); % ambiguous condition
+        end
+        
+        % loop through channels
+        for chNum = 1:size(dt.(dataTypesToLoad{1}).(fieldList{1}), 2)
+            
+            chNumChar = ['0' num2str(chNum)];
+            chNumChar = chNumChar(end-1:end);
+            
+            if strcmp(dataset, 'GFS_Tuebingen')
+                mua_savename = [output_dir 'mua' filesep 'mua_' flList{ii}(5:12) '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+            else
+                spk_savename = [output_dir 'spk' filesep 'spk_' flList{ii}(17:end-4) '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+            end
+            
+            % create databases for original data
+            for fieldNum = 1:length(fieldList)
+                
+                if isempty(dt.(dataTypesToLoad{1}).(fieldList{fieldNum}))
+                    if strcmp(dataset, 'GFS_Tuebingen')
+                        MUA.(fieldList{fieldNum}) = [];
+                        continue
+                    else
+                        SPK.(fieldList{fieldNum}) = [];
+                        continue
+                    end
+                    
+                end
+                
+                if strcmp(dataset, 'GFS_Tuebingen')
+                    MUA.(fieldList{fieldNum}) = dt.MUA.(fieldList{fieldNum})(:, chNum, :);
+                    MUA.(fieldList{fieldNum}) = permute(MUA.(fieldList{fieldNum}), [1 3 2]);
+                else
+                    SPK.(fieldList{fieldNum}) = dt.SPKSEL.(fieldList{fieldNum})(:, chNum, :);
+                    SPK.(fieldList{fieldNum}) = permute(SPK.(fieldList{fieldNum}), [1 3 2]);
+                end
+                
+            end
+            
+            if strcmp(dataset, 'GFS_NIH')
+                SPK.AddInfo = dt.SPKSEL.AddInfo;
+                SPK.RPL = dt.LFPSEL.RPL;
+                
+                % add the randomized RTs into the data structure
+                SPK.RPL.TargBotheyes_fake = TargBotheyes_fake;
+                SPK.RPL.nocatch_nodisap_fake = nocatch_nodisap_fake;
+                
+                % create spike RT-shifted data
+                for trNum = 1:size(SPK.CatchTargRemov, 2)
+                    SPK.CatchTargRemov_shifted(:, trNum) = circshift(SPK.CatchTargRemov(:, trNum), shift_time - SPK.RPL.CatchTargRemov(trNum));
+                end
+                for trNum = 1:size(SPK.TargBotheyes, 2)
+                    SPK.TargBotheyes_shifted(:, trNum) = circshift(SPK.TargBotheyes(:, trNum), shift_time - SPK.RPL.TargBotheyes_fake(trNum));
+                end
+                for trNum = 1:size(SPK.nocatch_disap, 2)
+                    SPK.nocatch_disap_shifted(:, trNum) = circshift(SPK.nocatch_disap(:, trNum), shift_time - SPK.RPL.nc_disap(trNum));
+                end
+                for trNum = 1:size(SPK.nocatch_nodisap, 2)
+                    SPK.nocatch_nodisap_shifted(:, trNum) = circshift(SPK.nocatch_nodisap(:, trNum), shift_time - SPK.RPL.nocatch_nodisap_fake(trNum));
+                end
+            end
+            
+            if strcmp(dataset, 'GFS_NIH')
+                save(spk_savename, '-struct', 'SPK', ...
+                    'TargBotheyes', 'nocatch_disap', 'CatchTargRemov', 'nocatch_nodisap', ...
+                    'CatchTargRemov_shifted', 'TargBotheyes_shifted', ...
+                    'nocatch_disap_shifted', 'nocatch_nodisap_shifted', ...
+                    'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
+                    'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data', ...
+                    'AddInfo', 'RPL')
+                clear SPK
+            elseif strcmp(dataset, 'GFS_noreport')
+                save(spk_savename, '-struct', 'SPK', ...
+                    'TargOnly', 'TargRemov', 'disap', 'nodisap')
+                clear SPK
+            elseif strcmp(dataset, 'GFS_Tuebingen')
+                save(mua_savename, '-struct', 'MUA', ...
+                    'physdis', 'nodisappdat', 'subjdis', 'subjNodis')
+                clear MUA
+            end
+            
+            if strcmp(dataset, 'GFS_Tuebingen')
+                % do nothing
+            else
+                % loop through bands and save data for those
+                for bandNum = 1:length(band_list)
+                    
+                    blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' flList{ii}(17:end-4) '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                    
+                    for fieldNum = 1:length(fieldList)
+                        
+                        if isempty(dt.LFPSEL.(fieldList{fieldNum}))
+                            BLP.(fieldList{fieldNum}) = [];
+                            continue
+                        end
+                        
+                        BLP.(fieldList{fieldNum}) = dt.LFPSEL.(fieldList{fieldNum})(:, chNum, :, bandNum);
+                        BLP.(fieldList{fieldNum}) = permute(BLP.(fieldList{fieldNum}), [1 3 2]);
+                        
+                    end
+                    
+                    if strcmp(dataset, 'GFS_NIH')
+                        BLP.AddInfo = dt.SPKSEL.AddInfo;
+                        BLP.RPL = dt.LFPSEL.RPL;
+                        
+                        % use the same randomized RTs as for SPK data for
+                        % corresponding BLP trials
+                        BLP.RPL.TargBotheyes_fake = TargBotheyes_fake; % physical condition
+                        BLP.RPL.nocatch_nodisap_fake = nocatch_nodisap_fake; % ambiguous condition
+                        
+                        % create BLP RT-shifted data
+                        for trNum = 1:size(BLP.CatchTargRemov, 2)
+                            BLP.CatchTargRemov_shifted(:, trNum) = circshift(BLP.CatchTargRemov(:, trNum), shift_time - BLP.RPL.CatchTargRemov(trNum));
+                        end
+                        for trNum = 1:size(BLP.TargBotheyes, 2)
+                            BLP.TargBotheyes_shifted(:, trNum) = circshift(BLP.TargBotheyes(:, trNum), shift_time - BLP.RPL.TargBotheyes_fake(trNum));
+                        end
+                        for trNum = 1:size(BLP.nocatch_disap, 2)
+                            BLP.nocatch_disap_shifted(:, trNum) = circshift(BLP.nocatch_disap(:, trNum), shift_time - BLP.RPL.nc_disap(trNum));
+                        end
+                        for trNum = 1:size(BLP.nocatch_nodisap, 2)
+                            BLP.nocatch_nodisap_shifted(:, trNum) = circshift(BLP.nocatch_nodisap(:, trNum), shift_time - BLP.RPL.nocatch_nodisap_fake(trNum));
+                        end
+                        
+                        save(blp_savename, '-struct', 'BLP', ...
+                            'TargBotheyes', 'nocatch_disap', 'CatchTargRemov', 'nocatch_nodisap', ...
+                            'CatchTargRemov_shifted', 'TargBotheyes_shifted', ...
+                            'nocatch_disap_shifted', 'nocatch_nodisap_shifted', ...
+                            'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
+                            'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data', ...
+                            'AddInfo', 'RPL')
+                        clear BLP
+                        
+                    elseif strcmp(dataset, 'GFS_noreport')
+                        save(blp_savename, '-struct', 'BLP', ...
+                            'TargOnly', 'TargRemov', 'disap', 'nodisap')
+                        clear BLP
+                    end
+                end
+            end
+            
+        end
+        
+        if strcmp(dataset, 'GFS_NIH')
+            clear TargBotheyes_fake nocatch_nodisap_fake
+        end
+        
+        clear dt
+        
+    end
+end
+
+if strcmp(dataset, 'GFS_NIH')
+    save('elec_info.mat', 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
+elseif strcmp(dataset, 'GFS_noreport')
+    save('elec_info.mat', 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
+elseif strcmp(dataset, 'GFS_Tuebingen')
+    save('mua_info.mat', 'mua_elec', 'area', 'sessionInfo')
+end
