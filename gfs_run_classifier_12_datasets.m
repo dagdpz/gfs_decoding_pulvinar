@@ -1,6 +1,6 @@
 clear all, close all
 
-binnedFiles = dir('Binned_data_*.mat');
+binnedFiles = dir('Binned_data_pulvinar_matchUnits_ambiguous_spk*.mat');
 
 % loop through files
 for flNum = 1:length(binnedFiles)%31%:length(binnedFiles) % [2:3:length(binnedFiles) 3:3:length(binnedFiles)]%
@@ -23,7 +23,6 @@ for flNum = 1:length(binnedFiles)%31%:length(binnedFiles) % [2:3:length(binnedFi
     specific_label_name_to_use = binned_site_info.parameters(1).field2decode;
     
     % figure out number of repetitions of each stimulus
-    for k = 1:65
     for k = 1:100
         inds_of_sites_with_at_least_k_repeats = find_sites_with_k_label_repetitions(binned_labels.disap_nodisap, k);
         num_sites_with_k_repeats(k) = length(inds_of_sites_with_at_least_k_repeats);
@@ -33,7 +32,8 @@ for flNum = 1:length(binnedFiles)%31%:length(binnedFiles) % [2:3:length(binnedFi
     num_cv_splits = find(a ~= 0, 1, 'first'); % equals to minimal number of stimulus repetitions
     disp(['Number of maximum cv splits is ' num2str(num_cv_splits)])
     
-    ds = basic_DS(binned_format_file_name, specific_label_name_to_use, 14); % make 14 cv splits
+    ds = basic_DS(binned_format_file_name, specific_label_name_to_use, ...
+        binned_site_info.parameters.rep); % make # parameters.rep cv splits
     %ds.sites_to_use = neurons2take;
     
     % create a feature preprocessor that z-score normalizes each neuron
