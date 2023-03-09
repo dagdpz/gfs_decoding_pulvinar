@@ -24,6 +24,7 @@ for flNum = 1:length(binnedFiles)%31%:length(binnedFiles) % [2:3:length(binnedFi
     
     % figure out number of repetitions of each stimulus
     for k = 1:65
+    for k = 1:100
         inds_of_sites_with_at_least_k_repeats = find_sites_with_k_label_repetitions(binned_labels.disap_nodisap, k);
         num_sites_with_k_repeats(k) = length(inds_of_sites_with_at_least_k_repeats);
     end
