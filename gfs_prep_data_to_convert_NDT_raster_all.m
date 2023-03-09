@@ -101,25 +101,27 @@ elseif strcmp(dataset, 'GFS_noreport')
 elseif strcmp(dataset, 'GFS_Tuebingen')
     
     dataDir = 'C:\Users\lvasileva\Documents\Luba\data\collaboration_Tuebfiles\230606_MUAGFS\';
+    lfpDir = 'C:\Users\lvasileva\Documents\Luba\data\collaboration_Tuebfiles\2023_LFP\';
     output_dir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\GFS_Tuebingen\blp_data\';
     
     % data for area and eye configuration
-    behDir = 'C:\Users\lvasileva\Documents\Luba\data\Luba\Mathis2\20200330_BehData\';
+    behDir = 'C:\Users\lvasileva\Documents\Luba\data\collaboration_Tuebfiles\2023_Beh\';
     % data for reation time
     RTDir = 'C:\Users\lvasileva\Documents\Luba\data\collaboration_Tuebfiles\230606_LFP_KorrGFS\';
     
-    % band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
-    %
-    % for bandNum = 1:length(band_list)
-    %
-    %     blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
-    %
-    % end
+    band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
     
-    dataTypesToLoad = {'MUA'};
+    for bandNum = 1:length(band_list)
+    
+        blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
+    
+    end
+    
+    dataTypesToLoad = {'MUA', 'LFP'};
+%     dataTypesToLoad = {'MUA'};
     
     fieldList = ...
-    {'physdis', 'nodisappdat', 'subjdis', 'subjNodis'}; % physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
+        {'physdis', 'nodisappdat', 'subjdis', 'subjNodis'}; % physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
     
     sessionName.start = 5;
     sessionName.end = 12;
@@ -131,6 +133,7 @@ elseif strcmp(dataset, 'GFS_Tuebingen')
     area = [];
     eyemodi = [];
     sessionInfo = {};
+    sessionInfo_long = {};
     
     getSessionInfo = @getSessionInfo_Tueb_outside_lnv;
     
@@ -145,6 +148,7 @@ flList = {flList.name};
 % get session names from the names of data files
 if strcmp(dataset, 'GFS_Tuebingen')
     sessionNames = cellfun(@(x) x(sessionName.start:sessionName.end), flList, 'Uniformoutput', false);
+    sessionNames_long = cellfun(@(x) x(5:end-4), flList, 'Uniformoutput', false);
 else
     sessionNames = cellfun(@(x) x(sessionName.start:end-sessionName.end), flList, 'Uniformoutput', false);
 end
@@ -153,11 +157,18 @@ end
 for ii = 1:length(sessionNames)
     
     currSession = sessionNames{ii};
-    
     SInf = getSessionInfo(currSession);
+    
+    if strcmp(dataset, 'GFS_Tuebingen')
+        currSession_long = sessionNames_long{ii};
+        SInf_long = getSessionInfo(currSession_long);
+    end
     
     % rename field "electrodes" --> "spk_elec"
     if strcmp(dataset, 'GFS_Tuebingen')
+        if ~isfield(SInf, 'electrodes')
+            SInf = SInf_long;
+        end
         SInf.spk_elec = SInf.electrodes;
         SInf = rmfield(SInf, 'electrodes');
     end
@@ -169,33 +180,73 @@ for ii = 1:length(sessionNames)
             strcmp(currSession, '110207_barney_gfs2-04') || ...
             strcmp(currSession, '120207_barney_gfs1-04') || ...
             strcmp(currSession, '120207_barney_gfs2-04') || ...
-            strcmp(currSession, '120207_barney_gfs3-04')
+            strcmp(currSession, '120207_barney_gfs3-04') || ...
+             strcmp(currSession, '131106_elvis_fixgfs_soa1400_2pos-04')% || ...% from no-report data set
+%             strcmp(currSession_long, '070204_wally_gfs_prot') || ...% from Tuebingen data
+%             strcmp(currSession_long, '090204_wally_gfs_protgrat') || ...
+%             strcmp(currSession_long, '110403_ernst_fixgfs_1min1_3455_prot25') || ...
+%             strcmp(currSession_long, '150403_ernst_gfs_pr2_3455_1min1_grat') || ...
+%             strcmp(currSession_long, '170204_wally_gfs_prot') || ...
+%             strcmp(currSession_long, '270104_wally_gfs_pr2')
         
         disp(currSession)
         
     else
         
-        dt = load([dataDir flList{ii}], dataTypesToLoad{:});
+        % load data
+        if strcmp(dataset, 'GFS_Tuebingen')
+            dt = load([dataDir flList{ii}], dataTypesToLoad{1}); % load MUA
+            
+            RT_id = [RTDir '*' currSession_long '*'];
+            RT_filename = dir(RT_id);
+            if length(RT_filename) == 1
+                load([RTDir RT_filename.name], 'AddInfo');
+                dt.MUA.RPL = AddInfo;
+                clear AddInfo
+            else
+                disp(currSession_long)
+                warning('Wrong number of RT-files / RT-files aren''t found')
+                continue
+            end
+            
+            % load LFP
+            load([RT_filename.folder filesep RT_filename.name], dataTypesToLoad{2}, 'LFP');
+            dt.LFP = LFP;
+            
+            clear RT_filename LFP
+            
+            if size(dt.MUA.(fieldList{1}), 2) ~= size(dt.LFP.(fieldList{1}), 2)
+                warning('Number of Channels in MUA and LFP doesn''t match')
+                continue
+            end
+            
+        else
+            dt = load([dataDir flList{ii}], dataTypesToLoad{:});
+        end
         
         % make all_data variable
         for dTypNum = 1:length(dataTypesToLoad)
             
             if strcmp(dataset, 'GFS_NIH')
-            
+                
                 dt.(dataTypesToLoad{dTypNum}).all_data = dt.(dataTypesToLoad{dTypNum}).all;
                 dt.(dataTypesToLoad{dTypNum}) = rmfield(dt.(dataTypesToLoad{dTypNum}), 'all');
                 
             elseif strcmp(dataset, 'GFS_noreport')
+                
                 dt.(dataTypesToLoad{dTypNum}).all_data = ...
                     cat(3, dt.(dataTypesToLoad{dTypNum}).TargOnly, dt.(dataTypesToLoad{dTypNum}).TargRemov, ...
                     dt.(dataTypesToLoad{dTypNum}).disap, dt.(dataTypesToLoad{dTypNum}).nodisap);
+                
             elseif strcmp(dataset, 'GFS_Tuebingen')
+                
                 dt.(dataTypesToLoad{dTypNum}).all_data = ...
                     cat(3, dt.(dataTypesToLoad{dTypNum}).physdis, dt.(dataTypesToLoad{dTypNum}).nodisappdat, ...
                     dt.(dataTypesToLoad{dTypNum}).subjdis, dt.(dataTypesToLoad{dTypNum}).subjNodis);
+                
             end
         end
-
+        
         % update electrode info
         if strcmp(dataset, 'GFS_NIH')
             spk_elec = [spk_elec SInf.spk_elec];
@@ -216,6 +267,7 @@ for ii = 1:length(sessionNames)
             
             area = [area SInf.area];
             sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
+            sessionInfo_long(length(sessionInfo_long) + 1 : length(sessionInfo_long) + length(SInf.spk_elec)) = {deal(currSession_long)};
         end
         
         % check that the number of trials and elecreodes match
@@ -229,9 +281,9 @@ for ii = 1:length(sessionNames)
             
             for fieldNum = 1:length(fieldList)
                     
-                if strcmp(dataTypesToLoad{dTypNum}, 'LFPSEL')
-                    dt.LFPSEL.(fieldList{fieldNum}) = gfs_convBLP_whole_preprocdat(dt.LFPSEL.(fieldList{fieldNum}));
-                    dt.LFPSEL.(fieldList{fieldNum}) = single(dt.LFPSEL.(fieldList{fieldNum}));
+                if strcmp(dataTypesToLoad{dTypNum}, 'LFPSEL') || strcmp(dataTypesToLoad{dTypNum}, 'LFP')
+                    dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = gfs_convBLP_whole_preprocdat(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
+                    dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = single(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
                 end
                 dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = single(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
                 
@@ -243,6 +295,9 @@ for ii = 1:length(sessionNames)
         if strcmp(dataset, 'GFS_NIH')
             TargBotheyes_fake = randsample(dt.LFPSEL.RPL.CatchTargRemov, size(dt.LFPSEL.TargBotheyes, 3), true); % physical condition
             nocatch_nodisap_fake = randsample(dt.LFPSEL.RPL.nc_disap, size(dt.LFPSEL.nocatch_nodisap, 3), true); % ambiguous condition
+        elseif strcmp(dataset, 'GFS_Tuebingen')
+%             nodisappdat_fake = randsample(dt.MUA.RPL.rellat_short, size(dt.MUA.nodisappdat, 3), true); % nodisap physical condition
+%             subjNodis_fake = randsample(dt.LFPSEL.RPL.nc_disap, size(dt.MUA.nocatch_nodisap, 3), true); % nodisap ambiguous condition
         end
         
         % loop through channels
@@ -252,9 +307,9 @@ for ii = 1:length(sessionNames)
             chNumChar = chNumChar(end-1:end);
             
             if strcmp(dataset, 'GFS_Tuebingen')
-                mua_savename = [output_dir 'mua' filesep 'mua_' flList{ii}(5:12) '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                mua_savename = [output_dir 'mua' filesep 'mua_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
             else
-                spk_savename = [output_dir 'spk' filesep 'spk_' flList{ii}(17:end-4) '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                spk_savename = [output_dir 'spk' filesep 'spk_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
             end
             
             % create databases for original data
@@ -318,27 +373,32 @@ for ii = 1:length(sessionNames)
                     'TargOnly', 'TargRemov', 'disap', 'nodisap')
                 clear SPK
             elseif strcmp(dataset, 'GFS_Tuebingen')
-                save(mua_savename, '-struct', 'MUA', ...
-                    'physdis', 'nodisappdat', 'subjdis', 'subjNodis')
-                clear MUA
+                if ~exist(mua_savename, 'file')
+                    save(mua_savename, '-struct', 'MUA', ...
+                        'physdis', 'nodisappdat', 'subjdis', 'subjNodis')
+                    clear MUA
+                else
+                    disp(currSession)
+                    disp('This filename already exists')
+                end
             end
             
-            if strcmp(dataset, 'GFS_Tuebingen')
+%             if strcmp(dataset, 'GFS_Tuebingen')
                 % do nothing
-            else
+%             else
                 % loop through bands and save data for those
                 for bandNum = 1:length(band_list)
                     
-                    blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' flList{ii}(17:end-4) '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                    blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
                     
                     for fieldNum = 1:length(fieldList)
                         
-                        if isempty(dt.LFPSEL.(fieldList{fieldNum}))
+                        if isempty(dt.(dataTypesToLoad{2}).(fieldList{fieldNum}))
                             BLP.(fieldList{fieldNum}) = [];
                             continue
                         end
                         
-                        BLP.(fieldList{fieldNum}) = dt.LFPSEL.(fieldList{fieldNum})(:, chNum, :, bandNum);
+                        BLP.(fieldList{fieldNum}) = dt.(dataTypesToLoad{2}).(fieldList{fieldNum})(:, chNum, :, bandNum);
                         BLP.(fieldList{fieldNum}) = permute(BLP.(fieldList{fieldNum}), [1 3 2]);
                         
                     end
@@ -377,11 +437,16 @@ for ii = 1:length(sessionNames)
                         
                     elseif strcmp(dataset, 'GFS_noreport')
                         save(blp_savename, '-struct', 'BLP', ...
-                            'TargOnly', 'TargRemov', 'disap', 'nodisap')
+                            'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data')
+                        clear BLP
+                        
+                    elseif strcmp(dataset, 'GFS_Tuebingen')
+                        save(blp_savename, '-struct', 'BLP', ...
+                            'physdis', 'nodisappdat', 'subjdis', 'subjNodis', 'all_data')
                         clear BLP
                     end
                 end
-            end
+%             end
             
         end
         
@@ -399,5 +464,5 @@ if strcmp(dataset, 'GFS_NIH')
 elseif strcmp(dataset, 'GFS_noreport')
     save('elec_info.mat', 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
 elseif strcmp(dataset, 'GFS_Tuebingen')
-    save('mua_info.mat', 'mua_elec', 'area', 'sessionInfo')
+    save('./GFS_Tuebingen/mua_info.mat', 'mua_elec', 'area', 'sessionInfo', 'sessionInfo_long')
 end
