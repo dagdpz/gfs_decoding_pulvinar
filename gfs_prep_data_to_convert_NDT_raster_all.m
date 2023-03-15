@@ -121,7 +121,7 @@ elseif strcmp(dataset, 'GFS_Tuebingen')
 %     dataTypesToLoad = {'MUA'};
     
     fieldList = ...
-        {'physdis', 'nodisappdat', 'subjdis', 'subjNodis'}; % physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
+        {'physdis', 'nodisappdat', 'subjdis', 'subjNodis', 'all_data'}; % physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
     
     sessionName.start = 5;
     sessionName.end = 12;
@@ -181,8 +181,11 @@ for ii = 1:length(sessionNames)
             strcmp(currSession, '120207_barney_gfs1-04') || ...
             strcmp(currSession, '120207_barney_gfs2-04') || ...
             strcmp(currSession, '120207_barney_gfs3-04') || ...
-             strcmp(currSession, '131106_elvis_fixgfs_soa1400_2pos-04')% || ...% from no-report data set
-%             strcmp(currSession_long, '070204_wally_gfs_prot') || ...% from Tuebingen data
+            strcmp(currSession, '131106_elvis_fixgfs_soa1400_2pos-04') || ...% from no-report data set
+            ...
+            strcmp(currSession, '140303_e') || ... % from Tuebingen data
+            strcmp(currSession, '210403_e')
+%             strcmp(currSession_long, '070204_wally_gfs_prot') || ...
 %             strcmp(currSession_long, '090204_wally_gfs_protgrat') || ...
 %             strcmp(currSession_long, '110403_ernst_fixgfs_1min1_3455_prot25') || ...
 %             strcmp(currSession_long, '150403_ernst_gfs_pr2_3455_1min1_grat') || ...
@@ -383,12 +386,12 @@ for ii = 1:length(sessionNames)
                 clear SPK
             elseif strcmp(dataset, 'GFS_noreport')
                 save(spk_savename, '-struct', 'SPK', ...
-                    'TargOnly', 'TargRemov', 'disap', 'nodisap')
+                    'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data')
                 clear SPK
             elseif strcmp(dataset, 'GFS_Tuebingen')
                 if ~exist(mua_savename, 'file')
                     save(mua_savename, '-struct', 'MUA', ...
-                        'physdis', 'nodisappdat', 'subjdis', 'subjNodis')
+                        'physdis', 'nodisappdat', 'subjdis', 'subjNodis', 'all_data')
                     clear MUA
                 else
                     disp(currSession)
