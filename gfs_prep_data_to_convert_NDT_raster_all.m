@@ -215,6 +215,18 @@ for ii = 1:length(sessionNames)
             
             clear RT_filename LFP
             
+            % load Beh data
+            Beh_id = [behDir '*' currSession_long '*'];
+            Beh_filename = dir(Beh_id);
+            if length(Beh_filename) == 1
+                load([behDir Beh_filename.name], 'BEH');
+            else
+                disp(currSession_long)
+                warning('Wrong number of Beh-files / Beh-files aren''t found')
+            end
+            
+            
+            
             if size(dt.MUA.(fieldList{1}), 2) ~= size(dt.LFP.(fieldList{1}), 2)
                 warning('Number of Channels in MUA and LFP doesn''t match')
                 continue
@@ -268,6 +280,7 @@ for ii = 1:length(sessionNames)
             area = [area SInf.area];
             sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
             sessionInfo_long(length(sessionInfo_long) + 1 : length(sessionInfo_long) + length(SInf.spk_elec)) = {deal(currSession_long)};
+            eyemodi(length(eyemodi) + 1 : length(eyemodi) + length(SInf.spk_elec)) = deal(BEH.fromDGZ.eyecomb);
         end
         
         % check that the number of trials and elecreodes match
@@ -464,5 +477,5 @@ if strcmp(dataset, 'GFS_NIH')
 elseif strcmp(dataset, 'GFS_noreport')
     save('elec_info.mat', 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
 elseif strcmp(dataset, 'GFS_Tuebingen')
-    save('./GFS_Tuebingen/mua_info.mat', 'mua_elec', 'area', 'sessionInfo', 'sessionInfo_long')
+    save('./GFS_Tuebingen/mua_info.mat', 'mua_elec', 'area', 'sessionInfo', 'sessionInfo_long', 'eyemodi')
 end
