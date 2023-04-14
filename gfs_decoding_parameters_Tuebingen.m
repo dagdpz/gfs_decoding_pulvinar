@@ -8,7 +8,7 @@ data_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2', 'spk'};
 data_list = {'spk', 'alpha', 'beta', 'gamma1', 'gamma2'};
 data_list = {'mua', 'alpha', 'beta', 'gamma1', 'gamma2'};
 
-area_list = {'V1', 'V2', 'V4'};
+area_list = {'V1&2', 'V1', 'V2', 'V4'};
 
 % template
 % params(n).mkdir1 = 
@@ -24,7 +24,52 @@ area_list = {'V1', 'V2', 'V4'};
 % n = n + 1;
 
 n = 1;
-% DECODE FROM RT-ALIGNED DATA - GENERALIZATION
+
+% DECODE FROM TARGET-RESPONSIVE & TARGET-UNRESPONSIVE
+for dataTypeNum = 1:length(data_list)
+    
+    % loop through all the areas (V1&2, V1, V2, V4)
+    for areaNum = 1:length(area_list)
+
+        for respType = [0 1]
+        params(n).mkdir1 = ['results_' area_list{areaNum} '_ambiguous_response' num2str(respType) '_' data_list{dataTypeNum}];
+        params(n).mkdir2 = [params(n).mkdir1 '/shuff'];
+        params(n).specific_binned_labels_names = 'disap_nodisap';
+        params(n).paradigm = ['Binned_data_' area_list{areaNum} '_ambiguous_response' num2str(respType) '_' data_list{dataTypeNum} '_250ms_bins_50ms'];
+        params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
+        params(n).save_file_name0 = [params(n).mkdir1 filesep 'Results' params(n).paradigm(12:end) '_results'];
+        params(n).save_file_name1 = [params(n).mkdir2 filesep 'Results' params(n).paradigm(12:end) '_results_shuff_run_'];
+        n = n + 1;
+        end
+    end
+end
+
+
+% DECODE FROM SPIKE-MATCHED DATA - AMBIGUOUS
+% loop through data types (spikes and all the BLPs)
+for dataTypeNum = 1:length(data_list)
+    
+    % loop through all the areas (V1&2, V1, V2, V4)
+    for areaNum = 1:length(area_list)
+        
+        % repeat the same decoding in V4 several times, save results
+%         for repNum = 1%:3
+        
+            params(n).mkdir1 = ['results_' area_list{areaNum} '_ambiguous_' data_list{dataTypeNum} '_cvsplits14']; %  num2str(repNum)
+            params(n).mkdir2 = [params(n).mkdir1 filesep 'shuff'];
+            params(n).specific_binned_labels_names = 'disap_nodisap';
+            params(n).paradigm = ['Binned_data_' area_list{areaNum} '_ambiguous_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
+            params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
+            params(n).cv_splits_num = 14;
+            params(n).save_file_name0 = [params(n).mkdir1 filesep 'Results' params(n).paradigm(12:end) '_results'];
+            params(n).save_file_name1 = [params(n).mkdir2 filesep 'Results' params(n).paradigm(12:end) '_results_shuff_run_'];
+            n = n + 1;
+            
+%         end
+    end
+end
+
+% DECODE FROM SPIKE-NON-MATCHED DATA - GENERALIZATION
 % loop through data types (all the BLPs and spikes)
 for dataTypeNum = 1:length(data_list)
     
@@ -38,8 +83,8 @@ for dataTypeNum = 1:length(data_list)
         params(n).the_test_label_names = {{'disap_physical'}, {'nodisap_physical'}};
         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
-        params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm '_results'];
-        params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm '_results_shuff_run_'];
+        params(n).save_file_name0 = [params(n).mkdir1 filesep 'Results' params(n).paradigm(12:end) '_results'];
+        params(n).save_file_name1 = [params(n).mkdir2 filesep 'Results' params(n).paradigm(12:end) '_results_shuff_run_'];
         n = n + 1;
         
         % pulvinar both + generalization (2 of 4: physical vs. ambiguous)
@@ -50,8 +95,8 @@ for dataTypeNum = 1:length(data_list)
         params(n).the_test_label_names = {{'disap_ambiguous'}, {'nodisap_ambiguous'}};
         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
-        params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm '_results'];
-        params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm '_results_shuff_run_'];
+        params(n).save_file_name0 = [params(n).mkdir1 filesep 'Results' params(n).paradigm(12:end) '_results'];
+        params(n).save_file_name1 = [params(n).mkdir2 filesep 'Results' params(n).paradigm(12:end) '_results_shuff_run_'];
         n = n + 1;
         
         % pulvinar both + generalization (3 of 4: ambiguous vs. physical)
@@ -62,8 +107,8 @@ for dataTypeNum = 1:length(data_list)
         params(n).the_test_label_names = {{'disap_physical'}, {'nodisap_physical'}};
         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
-        params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm '_results'];
-        params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm '_results_shuff_run_'];
+        params(n).save_file_name0 = [params(n).mkdir1 filesep 'Results' params(n).paradigm(12:end) '_results'];
+        params(n).save_file_name1 = [params(n).mkdir2 filesep 'Results' params(n).paradigm(12:end) '_results_shuff_run_'];
         n = n + 1;
         
         % pulvinar both + generalization (4 of 4: ambiguous vs. ambiguous)
@@ -74,37 +119,11 @@ for dataTypeNum = 1:length(data_list)
         params(n).the_test_label_names = {{'disap_ambiguous'}, {'nodisap_ambiguous'}};
         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
-        params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm '_results'];
-        params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm '_results_shuff_run_'];
+        params(n).save_file_name0 = [params(n).mkdir1 filesep 'Results' params(n).paradigm(12:end) '_results'];
+        params(n).save_file_name1 = [params(n).mkdir2 filesep 'Results' params(n).paradigm(12:end) '_results_shuff_run_'];
         n = n + 1;
     end
 end
-
-% DECODE FROM SPIKE-MATCHED DATA - AMBIGUOUS
-% loop through data types (spikes and all the BLPs)
-for dataTypeNum = 1%:length(data_list)
-    
-    % loop through all the areas (V1, V2, V4)
-    for areaNum = 3%1:length(area_list)
-        
-        % repeat the same decoding in V4 several times, save results
-        for repNum = 1:3
-        
-            params(n).mkdir1 = ['results_' area_list{areaNum} '_ambiguous_' data_list{dataTypeNum} '_cvsplits14_' num2str(repNum)];
-            params(n).mkdir2 = [params(n).mkdir1 filesep 'shuff'];
-            params(n).specific_binned_labels_names = 'disap_nodisap';
-            params(n).paradigm = ['Binned_data_' area_list{areaNum} '_ambiguous_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
-            params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
-            params(n).cv_splits_num = 14;
-            params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm '_results'];
-            params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm '_results_shuff_run_'];
-            n = n + 1;
-        
-        end
-    end
-end
-
-
 
 % % DECODE FROM SPIKE-MATCHED DATA - GENERALIZATION
 % % loop through data types (all the BLPs and spikes)
@@ -158,6 +177,63 @@ end
 %         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
 %         params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm '_results'];
 %         params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm '_results_shuff_run_'];
+%         n = n + 1;
+%     end
+% end
+
+
+% % DECODE FROM RT-ALIGNED DATA - GENERALIZATION
+% % loop through data types (all the BLPs and spikes)
+% for dataTypeNum = 1:length(data_list)
+%     
+%     % loop through all the areas (LGN, V4, pulvinar)
+%     for areaNum = 1:length(area_list)
+%         % pulvinar both + generalization (1 of 4: physical vs. physical)
+%         params(n).mkdir1 = ['results_generalization_' area_list{areaNum} '_' data_list{dataTypeNum} '_physical-physical'];
+%         params(n).mkdir2 = [params(n).mkdir1 filesep 'shuff'];
+%         params(n).specific_binned_labels_names = 'condition_disap';
+%         params(n).the_training_label_names = {{'disap_physical'}, {'nodisap_physical'}};
+%         params(n).the_test_label_names = {{'disap_physical'}, {'nodisap_physical'}};
+%         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
+%         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
+%         params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm(12:end) '_results'];
+%         params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm(12:end) '_results_shuff_run_'];
+%         n = n + 1;
+%         
+%         % pulvinar both + generalization (2 of 4: physical vs. ambiguous)
+%         params(n).mkdir1 = ['results_generalization_' area_list{areaNum} '_' data_list{dataTypeNum} '_physical-ambiguous'];
+%         params(n).mkdir2 = [params(n).mkdir1 filesep 'shuff'];
+%         params(n).specific_binned_labels_names = 'condition_disap';
+%         params(n).the_training_label_names = {{'disap_physical'}, {'nodisap_physical'}};
+%         params(n).the_test_label_names = {{'disap_ambiguous'}, {'nodisap_ambiguous'}};
+%         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
+%         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
+%         params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm(12:end) '_results'];
+%         params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm(12:end) '_results_shuff_run_'];
+%         n = n + 1;
+%         
+%         % pulvinar both + generalization (3 of 4: ambiguous vs. physical)
+%         params(n).mkdir1 = ['results_generalization_' area_list{areaNum} '_' data_list{dataTypeNum} '_ambiguous-physical'];
+%         params(n).mkdir2 = [params(n).mkdir1 filesep 'shuff'];
+%         params(n).specific_binned_labels_names = 'condition_disap';
+%         params(n).the_training_label_names = {{'disap_ambiguous'}, {'nodisap_ambiguous'}};
+%         params(n).the_test_label_names = {{'disap_physical'}, {'nodisap_physical'}};
+%         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
+%         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
+%         params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm(12:end) '_results'];
+%         params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm(12:end) '_results_shuff_run_'];
+%         n = n + 1;
+%         
+%         % pulvinar both + generalization (4 of 4: ambiguous vs. ambiguous)
+%         params(n).mkdir1 = ['results_generalization_' area_list{areaNum} '_' data_list{dataTypeNum} '_ambiguous-ambiguous'];
+%         params(n).mkdir2 = [params(n).mkdir1 filesep 'shuff'];
+%         params(n).specific_binned_labels_names = 'condition_disap';
+%         params(n).the_training_label_names = {{'disap_ambiguous'}, {'nodisap_ambiguous'}};
+%         params(n).the_test_label_names = {{'disap_ambiguous'}, {'nodisap_ambiguous'}};
+%         params(n).paradigm = ['Binned_data_' area_list{areaNum} '_both_cvsplits14_' data_list{dataTypeNum} '_250ms_bins_50ms'];
+%         params(n).binned_data_file_name = [params(n).paradigm '_sampled.mat'];
+%         params(n).save_file_name0 = [params(n).mkdir1 filesep params(n).paradigm(12:end) '_results'];
+%         params(n).save_file_name1 = [params(n).mkdir2 filesep params(n).paradigm(12:end) '_results_shuff_run_'];
 %         n = n + 1;
 %     end
 % end
