@@ -325,7 +325,7 @@ for ii = 1:length(sessionNames)
             if strcmp(dataset, 'GFS_Tuebingen')
                 mua_savename = [output_dir 'mua' filesep 'mua_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
             else
-                spk_savename = [output_dir 'spk' filesep 'spk_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                spk_savename = [output_dir 'spk' filesep 'spk_' currSession '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
             end
             
             % create databases for original data
@@ -405,7 +405,11 @@ for ii = 1:length(sessionNames)
                 % loop through bands and save data for those
                 for bandNum = 1:length(band_list)
                     
-                    blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                    if strcmp(dataset, 'GFS_Tuebingen')
+                        blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                    else
+                        blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                    end
                     
                     for fieldNum = 1:length(fieldList)
                         
