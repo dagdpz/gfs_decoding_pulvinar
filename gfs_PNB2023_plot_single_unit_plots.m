@@ -28,10 +28,10 @@ params(n).timing = [500 800 2200 3200];
 
 cmap = cool(4);
 
+figure,
+set(gcf, 'Position', [1 41 1920 963])
+
 for setNum = 1:2
-    
-    figure,
-    set(gcf, 'Position', [125 475 1500 420])
     
     for flNum = 1:length(params(setNum).fileNames)
         
@@ -65,7 +65,7 @@ for setNum = 1:2
             
         end
         
-        subplot(1, 3, flNum)
+        subplot(2, 3, 3*(setNum - 1) + flNum)
         hold on
         for labNum = 1:4
 %             p(1) = fill([x_times fliplr(x_times) x_times(1)], [upperEB; flipud(lowerEB); upperEB(1)], cmap(labNum, :), 'FaceAlpha', .15, 'EdgeColor', 'none');
