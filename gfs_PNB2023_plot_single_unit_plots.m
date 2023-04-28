@@ -14,7 +14,7 @@ params(n).channel = [11 37 9]; % V4 - 36
 params(n).timing = [1500 3000 5000 6500];
 params(n).multiplier = 1000;
 params(n).ylabel = 'Spiking Frequency, Hz';
-params(n).ylim = [0 90];
+params(n).ylim = {[20 80], [20 90], [10 50]};
 params(n).lineStyle = {':', '-', '--', '-'};
 n = n + 1;
 
@@ -31,7 +31,7 @@ params(n).channel = [11 6 12];
 params(n).timing = [500 800 2200 3200];
 params(n).multiplier = 1;
 params(n).ylabel = 'MUA power, a.u.';
-params(n).ylim = [0 7];
+params(n).ylim = {[2 6.5], [2 6.5], [2 6.5]};
 params(n).lineStyle = {':', '-', '--', '-'};
 
 cmap = [0 0 0;
@@ -41,6 +41,7 @@ cmap = [0 0 0;
 
 figure,
 set(gcf, 'Position', [1 41 1920 963])
+% [1 145 1920 851]
 set(gcf, 'PaperOrientation', 'portrait')
 
 for setNum = 1:2
@@ -87,19 +88,22 @@ for setNum = 1:2
                 plot(x_times, currMean(:, labNum), 'Color', cmap(labNum, :), 'LineWidth', 2, 'LineStyle', params(setNum).lineStyle{labNum});
         end
         
-        xline(params(setNum).timing(1))
-        xline(params(setNum).timing(2))
-        xline(params(setNum).timing(3))
+        xline(params(setNum).timing(1), 'Label', 'Stable Fixation', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        xline(params(setNum).timing(2), 'Label', 'Target Onset', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        xline(params(setNum).timing(3), 'Label', 'Surround Onset', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
         
         % set y-lims
-        set(gca, 'YLim', params(setNum).ylim);
+        set(gca, 'YLim', params(setNum).ylim{flNum});
         
 %         grid on
         
 %         y_lim_max(labNum) = y_lim(2);
         
-        if flNum == 1
+        if setNum == 1 && flNum == 2
             legend(p, {'Physical Removal', 'Physical Persistence', 'Perceptual Suppression', 'Perceptual Persistence'}, 'Location', 'Best')
+        end
+        
+        if flNum == 1
             xlabel('Time after trial start, ms')
             ylabel(params(setNum).ylabel)
         end
@@ -107,6 +111,9 @@ for setNum = 1:2
         xlim([0 params(setNum).timing(4)])
         
         title({params(setNum).areas{flNum}, [params(setNum).cellIds{flNum} ' ch' num2str(params(setNum).channel(flNum))]}, 'interpreter', 'none')
+%         xL = xlim;
+%         yL = ylim;
+%         text(xL(1), 1.1*yL(1), [params(setNum).cellIds{flNum} ' ch' num2str(params(setNum).channel(flNum))], 'interpreter', 'none')
         
         box on
     end
