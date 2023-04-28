@@ -21,6 +21,8 @@ params(n).dataFolder = ...
 params(n).labels = {'Tr - physical, Te - physical', 'Tr - physical, Te - ambiguous', 'Tr - ambiguous, Te - physical', 'Tr - ambiguous, Te - ambiguous'};
 params(n).areas = {'LGN', 'V4', 'pulvinar'};
 params(n).timing = [1500 3000 5000 6500];
+params(n).lineStyle = {'-', ':', ':', '-'};
+params(n).cellNum = [40 28 92];
 n = n + 1;
 
 params(n).fileNames = ...
@@ -38,14 +40,24 @@ params(n).dataFolder = ...
 params(n).labels = {'Tr - physical, Te - physical', 'Tr - physical, Te - ambiguous', 'Tr - ambiguous, Te - physical', 'Tr - ambiguous, Te - ambiguous'};
 params(n).areas = {'V1&2', 'V4'};
 params(n).timing = [500 800 2200 3200];
+params(n).lineStyle = {'-', ':', ':', '-'};
+params(n).cellNum = [35 56];
 
 % set colors
-cmap = cool(4);
+cmap = copper(4);
+cmap = [0 0 0;
+    0.53 0.22 0.13;
+    0.13 0.37 0.49;
+    0.97 0.41 0.25];
 
 for setNum = 1:2
     
     figure,
-    set(gcf, 'Position', [1 419 1919 577])
+    if setNum == 1
+        set(gcf, 'Position', [1 419 1919 577])
+    elseif setNum == 2
+        set(gcf, 'Position', [91 157 1226 577])
+    end
     
     for areaNum = 1:length(params(setNum).fileNames)
         
@@ -66,27 +78,33 @@ for setNum = 1:2
             currLowEB = currDecodingAccuracy - currStd/2;
             currHighEB = currDecodingAccuracy + currStd/2;
             
-            p(decNum) = plot(x_times, currDecodingAccuracy, 'Color', cmap(decNum, :), 'LineWidth', 2);
+            p(decNum) = plot(x_times, currDecodingAccuracy, 'Color', cmap(decNum, :), 'LineWidth', 2, 'LineStyle', params(setNum).lineStyle{decNum});
             hold on
             fill([x_times fliplr(x_times) x_times(1)], [currHighEB; flipud(currLowEB); currHighEB(1)], cmap(decNum, :), 'FaceAlpha', .25, 'EdgeColor', 'none');
             
         end
         
-        xline(params(setNum).timing(1))
-        xline(params(setNum).timing(2))
-        xline(params(setNum).timing(3))
+        xline(params(setNum).timing(1), 'Label', 'Stable Fixation', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        xline(params(setNum).timing(2), 'Label', 'Target Onset', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        xline(params(setNum).timing(3), 'Label', 'Surround Onset', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
         yline(0.5)
-        title(params(setNum).areas{areaNum})
-        ylim([0 1])
+        if setNum == 1
+            title([params(setNum).areas{areaNum} ': ' num2str(params(setNum).cellNum(areaNum)) ' units'])
+            xlim([params(setNum).timing(3) - 200 params(setNum).timing(4) - 500])
+        elseif setNum == 2
+            title([params(setNum).areas{areaNum} ': ' num2str(params(setNum).cellNum(areaNum)) ' sites'])
+            xlim([params(setNum).timing(3) - 200 params(setNum).timing(4) - 200])
+        end
+        ylim([0.3 1])
         
-        if areaNum == 1
-            
+        if areaNum == 3
             legend(p, params(n).labels, 'Location', 'best')
-            xlabel('Time after trial start, ms')
-            ylabel('Decoding Accuracy')
-            
         end
         
+        if areaNum == 1
+            xlabel('Time after trial start, ms')
+            ylabel('Decoding Accuracy')
+        end
     end
 end
 
