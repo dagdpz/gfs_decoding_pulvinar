@@ -10,6 +10,9 @@ params(n).dataFolder = ...
 params(n).labels = {'disap_physical', 'nodisap_physical', 'disap_ambiguous', 'nodisap_ambiguous'};
 params(n).areas = {'LGN', 'V4', 'pulvinar'};
 params(n).timing = [1500 3000 5000 6500];
+params(n).lineStyle = {':', '-', '--', '-'};
+params(n).cellNum = [40 28 92];
+params(n).ylim = {[-0.5 0.6], [-0.5 1], [-0.5 0.5]};
 n = n + 1;
 
 params(n).fileNames = ...
@@ -21,12 +24,19 @@ params(n).dataFolder = ...
 params(n).labels = {'disap_physical', 'nodisap_physical', 'disap_ambiguous', 'nodisap_ambiguous'};
 params(n).areas = {'V1', 'V2', 'V4'};
 params(n).timing = [500 800 2200 3200];
+params(n).lineStyle = {':', '-', '--', '-'};
+params(n).cellNum = [25 10 56];
+params(n).ylim = {[-0.5 1.2], [-0.5 1.2], [-0.5 0.5]};
 
 % set colors
-cmap = cool(4);
+cmap = [0 0 0;
+    0.5 0.5 0.5;
+    0.25 0.73 0.97;
+    0.97 0.41 0.25];
+% cmap = cool(4);
 
 figure,
-set(gcf, 'Position', [1 41 1920 963])
+set(gcf, 'Position', [[1 145 1920 851]])
 
 for setNum = 1:length(params)
     
@@ -43,8 +53,9 @@ for setNum = 1:length(params)
         bin_centers = binned_site_info.binning_parameters.the_bin_start_times - ...
             binned_site_info.binning_parameters.bin_width/2;
         
-        backgroundIDs = bin_centers <= params(setNum).timing(2) - binned_site_info.binning_parameters.bin_width/2 & ...
-            bin_centers >= params(setNum).timing(1) + binned_site_info.binning_parameters.bin_width/2;
+        backgroundIDs = bin_centers <= params(setNum).timing(2) - binned_site_info.binning_parameters.bin_width/2;
+%         backgroundIDs = bin_centers <= params(setNum).timing(2) - binned_site_info.binning_parameters.bin_width/2 & ...
+%             bin_centers >= params(setNum).timing(1) + binned_site_info.binning_parameters.bin_width/2;
         
         binned_data = cellfun(@single, binned_data, 'UniformOutput', false);
         
@@ -52,8 +63,9 @@ for setNum = 1:length(params)
         binned_data = cellfun(@transpose, binned_data, 'UniformOutput', false);
         
         % data normalization
-        mean_bg = cellfun(@(x) mean2(x(backgroundIDs, :)), binned_data, 'UniformOutput', false);
-        normalized_data = cellfun(@(x, y) (x-y), binned_data, mean_bg, 'UniformOutput', false);
+        mean_all = cellfun(@(x) mean2(x), binned_data, 'UniformOutput', false);
+        std_all = cellfun(@(x) std2(x), binned_data, 'UniformOutput', false);
+        normalized_data = cellfun(@(x, y, z) (x-y)/z, binned_data, mean_all, std_all, 'UniformOutput', false);
         
         for labNum = 1:4
             
@@ -75,25 +87,47 @@ for setNum = 1:length(params)
         
         for labNum = 1:4
             currLab = params(setNum).labels{labNum};
-            f(labNum) = fill([x_times fliplr(x_times) x_times(1)], [upperEB.(currLab); flipud(lowerEB.(currLab)); upperEB.(currLab)(1)], cmap(labNum, :), 'FaceAlpha', .25, 'EdgeColor', 'none');
-            p(labNum) = plot(x_times, signal_means.(currLab), 'Color', cmap(labNum, :), 'LineWidth', 2);
+            f(labNum) = ...
+                fill([x_times fliplr(x_times) x_times(1)], [upperEB.(currLab); flipud(lowerEB.(currLab)); upperEB.(currLab)(1)], cmap(labNum, :), 'FaceAlpha', .25, 'EdgeColor', 'none');
+            p(labNum) = ...
+                plot(x_times, signal_means.(currLab), 'Color', cmap(labNum, :), 'LineWidth', 2, 'LineStyle', params(setNum).lineStyle{labNum});
         end
         
         box on
         
-        xline(params(setNum).timing(1))
-        xline(params(setNum).timing(2))
-        xline(params(setNum).timing(3))
-        title(params(setNum).areas{flNum})
+        xline(params(setNum).timing(1), 'Label', 'Stable Fixation', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        xline(params(setNum).timing(2), 'Label', 'Target Onset', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        xline(params(setNum).timing(3), 'Label', 'Surround Onset', 'LabelHorizontalAlignment', 'center', 'LabelVerticalAlignment', 'top')
+        if setNum == 1
+            
+            title([params(setNum).areas{flNum} ': ' num2str(params(setNum).cellNum(flNum)) ' units'])
+            
+        elseif setNum == 2
+            
+            title([params(setNum).areas{flNum} ': ' num2str(params(setNum).cellNum(flNum)) ' sites'])
+            
+        end
         
         xlim([0 params(setNum).timing(4)])
         
-        if flNum == 1
-            legend(p, {'Physical Removal', 'Physical Persistence', 'Perceptual Suppression', 'Perceptual Disappearance'}, 'Location', 'Best')
-            xlabel('Time after trial start, ms')
-            ylabel('Spiking Frequency, Hz')
+        if setNum == 1 && flNum == 2
+            legend(p, {'Physical Removal', 'Physical Persistence', 'Perceptual Suppression', 'Perceptual Persistence'}, 'Location', 'Best')
         end
+        
+        if flNum == 1
+            xlabel('Time after trial start, ms')
+            if setNum == 1
+                ylabel('Normalized Spiking Frequency')
+            elseif setNum == 2
+                ylabel('Normalized MUA Power')
+            end
+        end
+        
+        ylim(params(setNum).ylim{flNum})
+%         ylim([-0.5 1.2])
         
     end
 
 end
+
+set(findall(gcf,'-property','FontSize'),'FontSize',16)
