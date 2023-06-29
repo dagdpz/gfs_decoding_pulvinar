@@ -495,5 +495,5 @@ switch dataset
     case 'GFS_noreport'
         save(['.' filesep dataset filesep 'elec_info.mat'], 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
     case 'GFS_Tuebingen'
-        save(['.' filesep dataset filsep 'mua_info.mat'], 'mua_elec', 'area', 'sessionInfo', 'sessionInfo_long', 'eyemodi')
+        save(['.' filesep dataset filesep 'mua_info.mat'], 'mua_elec', 'area', 'sessionInfo', 'sessionInfo_long', 'eyemodi')
 end
