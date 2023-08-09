@@ -84,14 +84,9 @@ switch dataset
         
         % shift_time = 450; % time point to which the code aligns the reaction time in each trial
         
-        % % list of the needed fields
-        % fieldList = ...
-        %     {'TargBotheyes', 'CatchTargRemov', 'nocatch_disap', 'nocatch_nodisap', ...
-        %     'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
-        %     'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data'};
-        
         fieldList = ...
-            {'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data'};
+            {'TargOnly', 'TargRemov', 'disap', 'nodisap', ... % Mask-aligned: physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
+            'T_TargOnly' 'T_TargRemov' 'T_disap' 'T_nodisap'}; % Target-aligned: physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
         
         fieldList_short = ...
             {'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data'};
@@ -326,7 +321,6 @@ for ii = 1:length(sessionNames)
                 
                 if strcmp(dataTypesToLoad{dTypNum}, 'LFPSEL') || strcmp(dataTypesToLoad{dTypNum}, 'LFP')
                     dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = gfs_convBLP_whole_preprocdat(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
-                    dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = single(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
                 end
                 dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}) = single(dt.(dataTypesToLoad{dTypNum}).(fieldList{fieldNum}));
                 
@@ -414,21 +408,17 @@ for ii = 1:length(sessionNames)
             switch dataset
                 case 'GFS_NIH'
                     save(spk_savename, '-struct', 'SPK', ...
-                        'TargBotheyes', 'nocatch_disap', 'CatchTargRemov', 'nocatch_nodisap', ...
+                        [fieldList, ...
                         'CatchTargRemov_shifted', 'TargBotheyes_shifted', ...
                         'nocatch_disap_shifted', 'nocatch_nodisap_shifted', ...
-                        'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
-                        'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data', ...
-                        'AddInfo', 'RPL')
+                        'AddInfo', 'RPL'])
                     clear SPK
                 case 'GFS_noreport'
-                    save(spk_savename, '-struct', 'SPK', ...
-                        'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data')
+                    save(spk_savename, '-struct', 'SPK', fieldList{:})
                     clear SPK
                 case 'GFS_Tuebingen'
                     if ~exist(mua_savename, 'file')
-                        save(mua_savename, '-struct', 'MUA', ...
-                            'physdis', 'nodisappdat', 'subjdis', 'subjNodis', 'all_data')
+                        save(mua_savename, '-struct', 'MUA', fieldList{:})
                         clear MUA
                     else
                         disp(currSession)
@@ -483,22 +473,18 @@ for ii = 1:length(sessionNames)
                         end
                         
                         save(blp_savename, '-struct', 'BLP', ...
-                            'TargBotheyes', 'nocatch_disap', 'CatchTargRemov', 'nocatch_nodisap', ...
+                            [fieldList, ...
                             'CatchTargRemov_shifted', 'TargBotheyes_shifted', ...
                             'nocatch_disap_shifted', 'nocatch_nodisap_shifted', ...
-                            'LE_nc_disap', 'RE_nc_disap', 'LE_nc_nodisap', 'RE_nc_nodisap', ...
-                            'LE_Physdis', 'RE_Physdis', 'LE_conNodis', 'RE_conNodis', 'all_data', ...
-                            'AddInfo', 'RPL')
+                            'AddInfo', 'RPL'])
                         clear BLP
                         
                     case 'GFS_noreport'
-                        save(blp_savename, '-struct', 'BLP', ...
-                            'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data')
+                        save(blp_savename, '-struct', 'BLP', fieldList{:})
                         clear BLP
                         
                     case 'GFS_Tuebingen'
-                        save(blp_savename, '-struct', 'BLP', ...
-                            'physdis', 'nodisappdat', 'subjdis', 'subjNodis', 'all_data')
+                        save(blp_savename, '-struct', 'BLP', fieldList{:})
                         clear BLP
                 end
             end
