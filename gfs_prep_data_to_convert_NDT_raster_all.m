@@ -22,9 +22,13 @@ switch dataset
         % make output data folders
         band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
         
+        blpdir = cell(length(band_list),1); % preallocate for folder names
         for bandNum = 1:length(band_list)
             
             blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
+            if exist(blpdir{bandNum}, 'dir')
+                mkdir(blpdir{bandNum})
+            end
             
         end
         
@@ -62,10 +66,18 @@ switch dataset
         
         band_list = {'delta', 'theta', 'alpha', 'beta', 'gamma1', 'gamma2'};
         
+        blpdir = cell(length(band_list),1); % preallocate for folder names
         for bandNum = 1:length(band_list)
             
             blpdir{bandNum} = [output_dir band_list{bandNum} filesep];
+            if ~exist(blpdir{bandNum}, 'dir')
+                mkdir(blpdir{bandNum})
+            end
             
+        end
+        spk_dir = [output_dir 'spk' filesep];
+        if ~exist(spk_dir, 'dir')
+            mkdir(spk_dir)
         end
         
         dataTypesToLoad = {'SPKSEL', 'LFPSEL'};
