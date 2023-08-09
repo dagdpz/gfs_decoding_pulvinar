@@ -86,7 +86,8 @@ switch dataset
         
         fieldList = ...
             {'TargOnly', 'TargRemov', 'disap', 'nodisap', ... % Mask-aligned: physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
-            'T_TargOnly' 'T_TargRemov' 'T_disap' 'T_nodisap'}; % Target-aligned: physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
+            'T_TargOnly' 'T_TargRemov' 'T_disap' 'T_nodisap', ... % Target-aligned: physical disap, physical no-disap, ambiguous disap, ambiguous no-disap
+            'all_data'}; 
         
         fieldList_short = ...
             {'TargOnly', 'TargRemov', 'disap', 'nodisap', 'all_data'};
@@ -298,6 +299,12 @@ for ii = 1:length(sessionNames)
                 unitqual = [unitqual SInf.spikeQual];
                 area = [area SInf.area];
                 sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
+                % check if all eyemod are either 6,7,8,9
+                if all(ismember(dt.SPKSEL.StimInfo.eyemod, [6 7 8 9]) == 1)
+                    eyemodi = [eyemodi, zeros(1, length(SInf.spk_elec))]; % for asymmetrical stimulus presentation
+                else
+                    eyemodi = [eyemodi, ones(1, length(SInf.spk_elec))];
+                end
                 targetResponse = [targetResponse SInf.TrOn];
             case 'GFS_Tuebingen'
                 mua_elec = [mua_elec SInf.spk_elec];
