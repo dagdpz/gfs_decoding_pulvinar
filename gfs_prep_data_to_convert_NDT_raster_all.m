@@ -261,15 +261,21 @@ for ii = 1:length(sessionNames)
             
             switch dataset
                 case 'GFS_NIH'
-                    
+                    % the 'all' variable and rename into the all_data, drop
                     dt.(dataTypesToLoad{dTypNum}).all_data = dt.(dataTypesToLoad{dTypNum}).all;
                     dt.(dataTypesToLoad{dTypNum}) = rmfield(dt.(dataTypesToLoad{dTypNum}), 'all');
                     
                 case 'GFS_noreport'
-                    
+                    % find condition with the max trials to use for unit
+                    % stability assessment
+                    varSizes = [size(dt.(dataTypesToLoad{dTypNum}).TargOnly, 3), ...
+                        size(dt.(dataTypesToLoad{dTypNum}).TargRemov, 3), ...
+                        size(dt.(dataTypesToLoad{dTypNum}).disap, 3), ...
+                        size(dt.(dataTypesToLoad{dTypNum}).nodisap, 3)];
+                    [~, maxSizeId] = max(varSizes);
+                    % assign the variable with max trials to all_data
                     dt.(dataTypesToLoad{dTypNum}).all_data = ...
-                        cat(3, dt.(dataTypesToLoad{dTypNum}).TargOnly, dt.(dataTypesToLoad{dTypNum}).TargRemov, ...
-                        dt.(dataTypesToLoad{dTypNum}).disap, dt.(dataTypesToLoad{dTypNum}).nodisap);
+                        dt.(dataTypesToLoad{dTypNum}).(fieldList{maxSizeId});
                     
                 case 'GFS_Tuebingen'
                     
@@ -432,9 +438,11 @@ for ii = 1:length(sessionNames)
                 
                 switch dataset
                     case 'GFS_Tuebingen'
-                        blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                        blp_savename = ...
+                            [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession_long '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
                     otherwise
-                        blp_savename = [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
+                        blp_savename = ...
+                            [output_dir filesep band_list{bandNum} filesep band_list{bandNum} '_' currSession '_' chNumChar '_ch' num2str(SInf.spk_elec(chNum)) '.mat'];
                 end
                 
                 for fieldNum = 1:length(fieldList)
@@ -446,7 +454,6 @@ for ii = 1:length(sessionNames)
                     
                     BLP.(fieldList{fieldNum}) = dt.(dataTypesToLoad{2}).(fieldList{fieldNum})(:, chNum, :, bandNum);
                     BLP.(fieldList{fieldNum}) = permute(BLP.(fieldList{fieldNum}), [1 3 2]);
-                    
                 end
                 
                 switch dataset
