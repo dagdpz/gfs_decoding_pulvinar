@@ -107,6 +107,7 @@ switch dataset
         area = [];
         eyemodi = [];
         sessionInfo = {};
+        targetResponse = [];
         
         getSessionInfo = @(x) getSesInfo_fixgfs_04_lnv(x, 1);
         
@@ -302,6 +303,7 @@ for ii = 1:length(sessionNames)
                 unitqual = [unitqual SInf.spikeQual];
                 area = [area SInf.area];
                 sessionInfo(length(sessionInfo) + 1 : length(sessionInfo) + length(SInf.spk_elec)) = {deal(currSession)};
+                targetResponse = [targetResponse SInf.TrOn];
             case 'GFS_Tuebingen'
                 mua_elec = [mua_elec SInf.spk_elec];
                 
@@ -512,10 +514,10 @@ for ii = 1:length(sessionNames)
 end
 
 switch dataset
-    case 'GFS_NIH'
-        save(['.' filesep dataset filesep 'elec_info.mat'], 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
-    case 'GFS_noreport'
-        save(['.' filesep dataset filesep 'elec_info.mat'], 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
     case 'GFS_Tuebingen'
         save(['.' filesep dataset filesep 'mua_info.mat'], 'mua_elec', 'area', 'sessionInfo', 'sessionInfo_long', 'eyemodi')
+    case 'GFS_noreport'
+        save(['.' filesep dataset filesep 'elec_info.mat'], 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi', 'targetResponse')
+    otherwise
+        save(['.' filesep dataset filesep 'elec_info.mat'], 'spk_elec', 'blp_elec', 'unitqual', 'area', 'sessionInfo', 'eyemodi')
 end
