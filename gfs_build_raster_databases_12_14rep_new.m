@@ -5,7 +5,7 @@ clear all, close all
 % readable by the Neuronal Decoding Toolbox.
 
 % set the current directory
-currDir = 'F:\Luba\scripts\ndt_prep\';
+currDir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\';
 cd(currDir)
 
 % pulvinar data set for trial-by-trial decoder
@@ -274,8 +274,8 @@ parameters(20).field2decode = 'disap_nodisap';
 parameters(20).neurons2choose = half2_2;
 
 % data dir
-dataDir = 'F:\Luba\scripts\spk_data\';
-saveDir = 'F:\Luba\scripts\ndt_prep\';
+dataDir = 'C:\Users\lvasileva\Documents\Luba\scripts\spk_data\';
+saveDir = 'C:\Users\lvasileva\Documents\Luba\scripts\ndt_prep\';
 
 % load info
 spk_info = load('spk_info.mat');
@@ -309,15 +309,13 @@ for flNum = 1:length(flList)
 %         nocatch_disap(1501:3000, :), nocatch_nodisap(1501:3000, :)]));
     
     % divide data into two groups, calc d' equation
-%     allData = [CatchTargRemov(1501:3000, :), TargBotheyes(1501:3000, :), ...
-%         nocatch_disap(1501:3000, :), nocatch_nodisap(1501:3000, :)];
     halfData = size(all_data, 2)/2;
     halfData = floor(halfData);
     half1std = std(mean(all_data(:, 1:halfData), 1));
     half2std = std(mean(all_data(:, end-halfData+1:end), 1));
     
     diff_index(flNum) = ...
-    (half1std - half2std) ./ (half1std + half2std);
+        (half1std - half2std) ./ (half1std + half2std);
     
     clear CatchTargRemov TargBotheyes nocatch_disap nocatch_nodisap
     
