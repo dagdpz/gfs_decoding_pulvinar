@@ -1,6 +1,6 @@
 clear all, close all
 
-load('C:\Users\LVasileva\Documents\data\allLFPinclude\20151005_SPKLFP_010606_elvis_gfs1_04.mat')
+load('C:\Users\LVasileva\Documents\Luba\data\allLFPinclude\20151005_SPKLFP_010606_elvis_gfs1_04.mat')
 
 % reshape data into 2d matrices
 LFPSEL.le_disappdat = reshape(LFPSEL.le_disappdat, [6500, size(LFPSEL.le_disappdat, 2)*size(LFPSEL.le_disappdat, 3)]);
